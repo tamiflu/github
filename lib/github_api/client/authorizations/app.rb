@@ -39,16 +39,16 @@ module Github
     #
     # @example
     #   github = Github.new basic_auth: "client_id:client_secret"
-    #   github.oauth.app.check 'client_id', 'access-token'
+    #   github.oauth.app.check client_id: 'client_id', access_token: 'access_token'
     #
     # @api public
     def check(*args)
       raise_authentication_error unless authenticated?
-      params = arguments(args, required: [:client_id, :access_token]).params
+      arguments(args, required: [:client_id])
 
       if arguments.client_id
         begin
-          get_request("/applications/#{arguments.client_id}/tokens/#{arguments.access_token}", params)
+          post_request("/applications/#{arguments.client_id}/token", arguments.params)
         rescue Github::Error::NotFound
           nil
         end
@@ -67,19 +67,19 @@ module Github
     #
     # @example
     #  github = Github.new basic_auth: "client_id:client_secret"
-    #  github.oauth.app.delete 'client-id', 'access-token'
+    #  github.oauth.app.delete client_id: 'client-id', access_token: 'access-token'
     #
     # @api public
     def delete(*args)
       raise_authentication_error unless authenticated?
-      params = arguments(args, required: [:client_id]).params
+      arguments(args, required: [:client_id])
 
       if arguments.client_id
         if access_token = (params.delete('access_token') || args[1])
-          delete_request("/applications/#{arguments.client_id}/tokens/#{access_token}", params)
+          delete_request("/applications/#{arguments.client_id}/token", arguments.params)
         else
           # Revokes all tokens
-          delete_request("/applications/#{arguments.client_id}/tokens", params)
+          delete_request("/applications/#{arguments.client_id}/grant", arguments.params)
         end
       else
         raise raise_app_authentication_error
